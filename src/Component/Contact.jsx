@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import { FiUploadCloud, FiCheckCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
 
 const Contact = () => {
@@ -7,8 +9,10 @@ const Contact = () => {
     age: "",
     file: null,
   });
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState("");
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -17,100 +21,134 @@ const Contact = () => {
     setFormData({ ...formData, file: e.target.files[0] });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Form submitted successfully!");
-    console.log("Form Data:", formData);
+
+    if (!formData.file) {
+      toast.error("Please upload a file.");
+      return;
+    }
+
+    setUploading(true);
+    const formDataForUpload = new FormData();
+    formDataForUpload.append("file", formData.file);
+    formDataForUpload.append("upload_preset", "UjjwalProject"); // Replace with your preset
+    formDataForUpload.append("cloud_name", "dij3xmbrg"); // Replace with your Cloudinary cloud name
+
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/dij3xmbrg/image/upload`, // Replace with your Cloudinary URL
+        {
+          method: "POST",
+          body: formDataForUpload,
+        }
+      );
+      const data = await response.json();
+
+      if (data.secure_url) {
+        setUploadedUrl(data.secure_url);
+        toast.success("File uploaded successfully!");
+      }
+    } catch (error) {
+      console.error("File upload error:", error);
+      toast.error("File upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-cyan-500 to-blue-700 px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-6">
+      <Toaster />
+      <motion.form
+        onSubmit={handleSubmit}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg"
       >
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Get in Touch
-        </h1>
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-          encType="multipart/form-data"
+        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+          <motion.div
+            initial={{ y: -10 }}
+            animate={{ y: 0 }}
+            transition={{ yoyo: Infinity, duration: 1 }}
+          >
+            🌟 Dynamic React Form
+          </motion.div>
+        </h2>
+        <div className="mb-6">
+          <label htmlFor="name" className="block text-sm font-medium mb-2">
+            Name:
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            className="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+            required
+          />
+        </div>
+        <div className="mb-6">
+          <label htmlFor="age" className="block text-sm font-medium mb-2">
+            Age:
+          </label>
+          <input
+            type="number"
+            id="age"
+            name="age"
+            value={formData.age}
+            onChange={handleInputChange}
+            className="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+            required
+          />
+        </div>
+        <div className="mb-6">
+          <label htmlFor="file" className="block text-sm font-medium mb-2">
+            File Upload:
+          </label>
+          <input
+            type="file"
+            id="file"
+            onChange={handleFileChange}
+            className="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
+            accept="image/*"
+            required
+          />
+        </div>
+        <motion.button
+          type="submit"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center justify-center w-full bg-gradient-to-r from-blue-500 to-green-500 text-white py-3 rounded-lg shadow-lg hover:from-blue-600 hover:to-green-600 disabled:opacity-50"
+          disabled={uploading}
         >
-          {/* Name Field */}
+          <FiUploadCloud className="mr-2" size={20} />
+          {uploading ? "Uploading..." : "Submit"}
+        </motion.button>
+        {uploadedUrl && (
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
-            className="relative"
+            className="mt-6 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
           >
-            <label className="block text-gray-600 font-medium mb-2" htmlFor="name">
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your name"
-              className="w-full px-4 py-2 border rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
+            <p className="text-green-600 font-medium flex items-center justify-center">
+              <FiCheckCircle className="mr-2" size={20} />
+              File uploaded successfully!
+            </p>
+            <a
+              href={uploadedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline mt-2 block"
+            >
+              View Uploaded File
+            </a>
           </motion.div>
-
-          {/* Age Field */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
-            className="relative"
-          >
-            <label className="block text-gray-600 font-medium mb-2" htmlFor="age">
-              Age
-            </label>
-            <input
-              type="number"
-              id="age"
-              name="age"
-              value={formData.age}
-              onChange={handleChange}
-              placeholder="Enter your age"
-              className="w-full px-4 py-2 border rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-          </motion.div>
-
-          {/* File Upload */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
-            className="relative"
-          >
-            <label className="block text-gray-600 font-medium mb-2" htmlFor="file">
-              Upload File
-            </label>
-            <input
-              type="file"
-              id="file"
-              name="file"
-              onChange={handleFileChange}
-              className="w-full px-4 py-2 border rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-          </motion.div>
-
-          {/* Submit Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition duration-300"
-            type="submit"
-          >
-            Submit
-          </motion.button>
-        </form>
-      </motion.div>
+        )}
+      </motion.form>
     </div>
   );
 };
