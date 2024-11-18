@@ -37,7 +37,7 @@ const Contact = () => {
 
     try {
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/dij3xmbrg/image/upload`, // Replace with your Cloudinary URL
+        `https://api.cloudinary.com/v1_1/dij3xmbrg/auto/upload`, // Supports different file types
         {
           method: "POST",
           body: formDataForUpload,
@@ -106,14 +106,14 @@ const Contact = () => {
         </div>
         <div className="mb-6">
           <label htmlFor="file" className="block text-sm font-medium mb-2">
-            File Upload:
+            File Upload (Images, PDF, Word):
           </label>
           <input
             type="file"
             id="file"
             onChange={handleFileChange}
             className="w-full border-gray-300 rounded-lg p-3 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500"
-            accept="image/*"
+            accept="image/*,application/pdf,.doc,.docx"
             required
           />
         </div>
